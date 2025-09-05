@@ -6,14 +6,24 @@ from github import Github, GithubException
 from .repositories import RepositoryManager, GitHubError
 from .pull_requests import PullRequestManager
 from .issues import IssueManager
+from ..config import GFRConfig
 
 class GitHubAPI:
     """A wrapper for the PyGithub library to handle auth and operations."""
-    def __init__(self):
+    def __init__(self, organization: str = None):
+        config = GFRConfig()
+        organization_in_config_file = config.get_organization()
+        # print(f"we are in github api init: org in config file is: {organization_in_config_file}")
+        
         """Initializes the GitHub API client and its managers."""
         load_dotenv()
         token = os.getenv("GITHUB_TOKEN")
-        self.org_name = os.getenv("GITHUB_ORGANIZATION")
+        if organization:
+            self.org_name = organization
+        elif organization_in_config_file:
+            self.org_name = organization_in_config_file
+        else:
+            self.org_name = os.getenv("GITHUB_ORGANIZATION")
         self.username = os.getenv("GITHUB_USERNAME")
 
         if not all([token, self.org_name, self.username]):

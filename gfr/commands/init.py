@@ -3,8 +3,10 @@ import questionary
 import os
 from rich.console import Console
 from rich.prompt import Prompt
+from dotenv import load_dotenv
 
 from gfr.utils.console import get_multiline_input
+from gfr.utils.config import GFRConfig
 from gfr.utils.github.api import GitHubAPI
 from gfr.utils.github.exceptions import GitHubError
 from gfr.utils.git.operations import GitOperations, GitError
@@ -21,13 +23,22 @@ def main():
     try:
         # --- Initialize APIs ---
         git_ops = GitOperations()
-        github_api = GitHubAPI()
+        config = GFRConfig()
+        load_dotenv()
+        org_in_env = os.getenv("GITHUB_ORGANIZATION")
 
         # --- Pre-flight Check ---
         if git_ops.is_git_repo():
             console.print("[bold red]Error:[/bold red] This directory is already a Git repository.")
             raise typer.Exit(code=1)
+        
+        org_name = Prompt.ask(f"[bold yellow]Enter organization name[/bold yellow]", default=org_in_env)
+        if not org_name:
+            console.print("[bold red]Organization name cannot be empty. Aborting.[/bold red]")
+            raise typer.Exit()
 
+        config.set_organization(org_name)
+        github_api = GitHubAPI(org_name)
         console.print(f"Authenticated as [bold green]{github_api.username}[/bold green] for organization [bold green]{github_api.org_name}[/bold green].")
         
         # --- Get Repository Details ---
