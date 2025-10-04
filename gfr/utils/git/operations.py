@@ -215,3 +215,17 @@ class GitOperations:
     def push_tags(self, path: str = "."):
         """Pushes all tags to the remote."""
         self._run_command(["git", "push", "--tags"], cwd=path)
+        
+    def get_all_branches(self, path: str = ".") -> list[str]:
+        """Gets a list of all local and remote branches."""
+        # Get local branches
+        local_branches_output = self._run_command(["git", "branch"], cwd=path)
+        local_branches = [b.replace("* ", "").strip() for b in local_branches_output.splitlines()]
+
+        # Get remote branches
+        remote_branches_output = self._run_command(["git", "branch", "-r"], cwd=path)
+        remote_branches = [b.replace("origin/", "").strip() for b in remote_branches_output.splitlines() if '->' not in b]
+
+        # Combine and remove duplicates
+        all_branches = sorted(list(set(local_branches + remote_branches)))
+        return all_branches

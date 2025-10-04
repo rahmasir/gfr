@@ -5,7 +5,6 @@ from rich.console import Console
 from rich.prompt import Prompt
 from dotenv import load_dotenv
 
-from gfr.utils.console import get_multiline_input
 from gfr.utils.config import GFRConfig
 from gfr.utils.github.api import GitHubAPI
 from gfr.utils.github.exceptions import GitHubError

@@ -103,6 +103,7 @@ def _start_release(git_ops: GitOperations, config: GFRConfig, microservice_name:
         with open(changelog_path, 'w') as f:
             f.write(CHANGELOG_TEMPLATE.strip() + "\n\n" + new_entry)
     
+    config.set_last_used_microservice(target_path)
     console.print("✔ Updated CHANGELOG.md.")
 
     console.print(f"\n[bold green]✔ Success![/bold green] Release {next_version} has been started.")
@@ -188,7 +189,7 @@ def release(
         if action.lower() == "start":
             _start_release(git_ops, config, microservice_name)
         elif action.lower() == "finish":
-            _finish_release(git_ops, github_api, config, microservice_name) # This will be added later
+            _finish_release(git_ops, github_api, config, microservice_name)
         else:
             console.print(f"[bold red]Error:[/bold red] Invalid action '{action}'. Please use 'start' or 'finish'.")
             raise typer.Exit(code=1)

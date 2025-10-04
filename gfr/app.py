@@ -6,7 +6,8 @@ from gfr.commands import (
     status, link,
     addasset,
     doc, dev,
-    feature, bugfix, release
+    feature, bugfix, release,
+    switch,
 )
 
 # Create the main Typer application
@@ -36,6 +37,7 @@ app.add_typer(doc.app, name='doc')
 app.add_typer(feature.app, name='feature')
 app.add_typer(bugfix.app, name='bugfix')
 app.add_typer(release.app, name='release')
+app.add_typer(switch.app, name='switch')
 
 if __name__ == "__main__":
     app()

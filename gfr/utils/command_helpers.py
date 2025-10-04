@@ -215,6 +215,8 @@ def validate_and_get_repo_details(git_ops: GitOperations, config: GFRConfig, mic
         if not target_path:
             console.print("[bold red]Error:[/bold red] No last used microservice found.")
             raise typer.Exit(code=1)
+        if(target_path == '.'):
+            return validate_and_get_repo_details(git_ops, config, '.')
         target_name = target_path
         repo_name_for_github = target_path
     else:

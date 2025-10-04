@@ -2,9 +2,12 @@ import typer
 import questionary
 from rich.console import Console
 from rich.prompt import Prompt
+from dotenv import load_dotenv
+import os
 
 from gfr.utils.github.api import GitHubAPI, GitHubError
 from gfr.utils.git.operations import GitOperations
+from gfr.utils.config import GFRConfig
 
 # Create a Typer app for the 'create' command
 app = typer.Typer()
@@ -16,9 +19,24 @@ def main():
     Creates a new GitHub repository in your organization.
     """
     try:
-        # Initialize the GitHub API client
-        github_api = GitHubAPI()
-        git_operations = GitOperations()
+        # --- Initialize APIs ---
+        git_ops = GitOperations()
+        config = GFRConfig()
+        load_dotenv()
+        org_in_env = os.getenv("GITHUB_ORGANIZATION")
+
+        # --- Pre-flight Check ---
+        if git_ops.is_git_repo():
+            console.print("[bold red]Error:[/bold red] This directory is already a Git repository.")
+            raise typer.Exit(code=1)
+        
+        org_name = Prompt.ask(f"[bold yellow]Enter organization name[/bold yellow]", default=org_in_env)
+        if not org_name:
+            console.print("[bold red]Organization name cannot be empty. Aborting.[/bold red]")
+            raise typer.Exit()
+
+        config.set_organization(org_name)
+        github_api = GitHubAPI(org_name)
         console.print(f"Authenticated as [bold green]{github_api.username}[/bold green] for organization [bold green]{github_api.org_name}[/bold green].")
 
         # --- Get Repository Name ---
