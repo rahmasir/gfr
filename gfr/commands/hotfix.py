@@ -120,7 +120,7 @@ def _finish_hotfix(
 
     # --- Commit Changelog ---
     console.print("[bold yellow]Committing changelog...[/bold yellow]")
-    git_ops.add([changelog_path], path=target_path)
+    git_ops.add(["CHANGELOG.md"], path=target_path)
     git_ops.commit(f"docs: update changelog for version {next_version}", path=target_path)
     console.print("✔ Committed changelog.")
 
