@@ -229,3 +229,7 @@ class GitOperations:
         # Combine and remove duplicates
         all_branches = sorted(list(set(local_branches + remote_branches)))
         return all_branches
+
+    def merge_branch_locally(self, branch_to_merge: str, path: str = "."):
+        """Merges a branch into the current checked-out branch."""
+        self._run_command(["git", "merge", branch_to_merge], cwd=path)

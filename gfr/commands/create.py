@@ -70,7 +70,7 @@ def main():
         
         
         with console.status("[bold yellow]Cloning repository...[/bold yellow]", spinner="dots"):
-            repo_path = git_operations.clone(repo.html_url, repo_name)
+            repo_path = git_ops.clone(repo.html_url, repo_name)
             
         console.print(f"\n[bold green]✔ Repository '{repo.full_name}' cloned successfully![/bold green]")
 

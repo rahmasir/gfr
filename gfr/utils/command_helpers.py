@@ -53,32 +53,14 @@ def start_new_task(task_type: str, microservice_name: str, task_name: str):
         github_api = GitHubAPI()
         config = GFRConfig()
 
-        if not git_ops.is_git_repo():
-            console.print("[bold red]Error:[/bold red] This command must be run from within a Git repository.")
-            raise typer.Exit(code=1)
-
-        # --- Determine target repository ---
-        if microservice_name == '.':
-            target_path = "."
-            target_name = "root project"
-            repo_name_for_github = git_ops.get_root().split('/')[-1]
-        elif microservice_name == '-':
-            target_path = config.get_last_used_microservice()
-            if not target_path:
-                console.print("[bold red]Error:[/bold red] No last used microservice found.")
-                raise typer.Exit(code=1)
-            target_name = target_path
-            repo_name_for_github = target_path
-        else:
-            target_path = microservice_name
-            target_name = microservice_name
-            repo_name_for_github = microservice_name
+        # --- Refactored: Use the helper to determine target repository ---
+        target_path, target_name, repo_name_for_github = validate_and_get_repo_details(git_ops, config, microservice_name)
 
         # --- Get Issue Details ---
         console.print(f"\n[bold cyan]Enter description for the {task_type} '{task_name}'.[/bold cyan]")
         description = get_multiline_input()
         
-        labels = ["enhancement" if task_type == "feature" else "bug"]
+        labels = ["enhancement", "feature"] if task_type == "feature" else ["bug", "bugfix"]
 
         with console.status(f"[bold yellow]Creating {task_type} on GitHub...[/bold yellow]", spinner="dots") as status:
             # --- Create GitHub Issue ---
@@ -97,7 +79,8 @@ def start_new_task(task_type: str, microservice_name: str, task_name: str):
             git_ops.switch_branch(branch_name, path=target_path)
             console.print(f"✔ Switched to new branch [bold yellow]{branch_name}[/bold yellow] in [bold cyan]{target_name}[/bold cyan].")
 
-            config.set_last_used_microservice(target_path)
+        # --- Set last used microservice with the resolved path ---
+        config.set_last_used_microservice(target_path)
 
         console.print(f"\n[bold green]✔ Success![/bold green] You are ready to start working on the {task_type}.")
 
@@ -142,7 +125,7 @@ def finish_task(task_type: str, microservice_name: str):
             final_description = f"Closes #{issue_number}\n\n{description}"
             console.print(f"This PR will automatically close issue [bold yellow]#{issue_number}[/bold yellow].")
 
-        labels = ["enhancement" if task_type == "feature" else "bug"]
+        labels = ["enhancement", "feature"] if task_type == "feature" else ["bug", "bugfix"]
 
         with console.status(f"[bold yellow]Finishing {task_type} on GitHub...[/bold yellow]", spinner="dots") as status:
             # --- Push Branch ---
@@ -181,7 +164,6 @@ def finish_task(task_type: str, microservice_name: str):
                 git_ops.commit(commit_message, path=".")
                 git_ops.push_branch(parent_branch, path=".")
                 console.print(f"✔ Updated, committed, and pushed parent repository on branch '{parent_branch}'.")
-                config.set_last_used_microservice(target_path)
 
         config.set_last_used_microservice(target_path)
         console.print(f"\n[bold green]✔ Success![/bold green] The {task_type} has been finished and merged.")
@@ -196,6 +178,7 @@ def finish_task(task_type: str, microservice_name: str):
 def validate_and_get_repo_details(git_ops: GitOperations, config: GFRConfig, microservice_name: str) -> tuple[str, str, str]:
     """
     Validates that the command is run in a git repo and the service name is valid.
+    The calling function is responsible for setting the last used microservice.
 
     Returns a tuple containing:
     - target_path (str): The local file path for git operations.
@@ -213,12 +196,16 @@ def validate_and_get_repo_details(git_ops: GitOperations, config: GFRConfig, mic
     elif microservice_name == '-':
         target_path = config.get_last_used_microservice()
         if not target_path:
-            console.print("[bold red]Error:[/bold red] No last used microservice found.")
+            console.print("[bold red]Error:[/bold red] No last used microservice found. Please specify a service.")
             raise typer.Exit(code=1)
-        if(target_path == '.'):
-            return validate_and_get_repo_details(git_ops, config, '.')
-        target_name = target_path
-        repo_name_for_github = target_path
+        
+        # Resolve the details from the retrieved path
+        if target_path == '.':
+            target_name = "root project"
+            repo_name_for_github = os.path.basename(git_ops.get_root())
+        else:
+            target_name = target_path
+            repo_name_for_github = target_path
     else:
         target_path = microservice_name
         target_name = microservice_name
@@ -228,8 +215,6 @@ def validate_and_get_repo_details(git_ops: GitOperations, config: GFRConfig, mic
         if target_path not in submodules:
             console.print(f"[bold red]Error:[/bold red] '{target_name}' is not a valid submodule in this project.")
             raise typer.Exit(code=1)
-    
-    config.set_last_used_microservice(microservice_name)
     
     return target_path, target_name, repo_name_for_github
     
