@@ -1,9 +1,10 @@
-###### This was created without git flow and only with the main branch 🪖😐🪻
-
-
 # gfr - Git Flow Assistant of Rahmasir
+#### Video Demo: [https://youtu.be/B6yIjM1rkIU](https://youtu.be/B6yIjM1rkIU)
+#### Description:
 
 `gfr` is a powerful command-line tool designed to streamline your Git and GitHub workflows, especially for projects involving microservices managed as Git submodules. It automates common tasks like repository creation, branch management, releases, and more, letting you focus on coding.
+
+###### This was created without git flow and only with the main branch 🪖😐🪻
 
 ## Installation
 
